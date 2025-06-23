@@ -162,6 +162,11 @@ jobs:
           echo "--- rsync.log content (filtered) ---"
           cat rsync.log | grep -v '^[>.][df]\.\.t\.\.\.\.\.\.' || true
 
+      - name: Show unfiltered rsync output
+        run: |
+          echo "--- rsync.log content (unfiltered) ---"
+          cat rsync.log
+
       - name: Check for changes
         working-directory: repo_playbooks_main
         id: check_changes
