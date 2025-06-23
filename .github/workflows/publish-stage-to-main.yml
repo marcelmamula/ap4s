@@ -37,18 +37,16 @@ jobs:
 
           # Loop through all deploy_scenarios and supported special_actions
           for dir in ./deploy_scenarios/* ./special_actions/*; do
-            if [ -d "$dir" ]; then
-              extravars_file="$dir/ansible_extravars.yml"
+            extravars_file="$dir/ansible_extravars.yml"
 
-              # Check if the ansible_extravars.yml file exists
-              if [ -f "$extravars_file" ]; then
-                # Check if the file contains "sap_playbook_internal: true"
-                if grep -q "sap_playbook_internal: true" "$extravars_file"; then
-                  echo "$dir scenario removed"
-                  rm -rf "$dir"
-                fi  # string is present
-              fi  # extravars file exists
-            fi  # dir is directory
+            # Check if the ansible_extravars.yml file exists
+            if [ -f "$extravars_file" ]; then
+              # Check if the file contains "sap_playbook_internal: true"
+              if grep -q "sap_playbook_internal: true" "$extravars_file"; then
+                echo "$dir scenario removed"
+                rm -rf "$dir"
+              fi  # string is present
+            fi  # extravars file exists
           done
  
           shopt -u nullglob # Revert nullglob to its default behavior
