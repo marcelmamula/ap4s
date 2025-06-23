@@ -1,0 +1,137 @@
+---
+#### Infrastructure Provisioning selection ####
+# Type of infrastructure provisioning method to use (String).
+# Options: ansible, ansible_to_terraform, existing_hosts
+sap_vm_provision_iac_type: "ENTER_STRING_VALUE_HERE"
+
+# Infrastructure platform for provisioning (String).
+# Options: aws_ec2_vs, gcp_ce_vm, ibmcloud_vs, ibmcloud_powervs, msazure_vm, ibmpowervm_vm, kubevirt_vm, ovirt_vm, vmware_vm
+sap_vm_provision_iac_platform: "ENTER_STRING_VALUE_HERE"
+
+# Name of the host specification plan to use (String).
+# Options: Defined in host_specifications_dictionary.
+sap_vm_provision_host_specification_plan: "ENTER_STRING_VALUE_HERE"
+
+
+#### Key SAP System variables ####
+sap_system_sid: "J01"  # SAP System ID (SID) (String)
+sap_system_anydb_sid: "DB2"  # SAP AnyDB (SID) (String).
+sap_system_nwas_java_scs_instance_nr: "00"  # SAP NetWeaver JAVA SCS instance number (String).
+sap_system_nwas_abap_pas_instance_nr: "01"  # SAP NetWeaver ABAP PAS instance number (String).
+# NOTE: All JAVA SCS variables are defined under ABAP ASCS for compatibility with sap_vm_provision role.
+sap_system_nwas_abap_ascs_instance_nr: "{{ sap_system_nwas_java_scs_instance_nr }}"  # SAP NetWeaver ABAP ASCS instance number (String).
+
+## SAP Product selection ##
+# Name of the SAP product to install (String).
+# Options: Defined in sap_software_install_dictionary (e.g. sap_nwas_750_sp22_java_ibmdb2_sandbox_ads).
+sap_software_product: "ENTER_STRING_VALUE_HERE"
+
+
+#### SAP Software installation media downloads ####
+## Required for download using community.sap_launchpad
+# SAP ONE Support Launchpad credentials
+sap_id_user: "ENTER_STRING_VALUE_HERE"  # Your SAP S-user ID (String).
+sap_id_user_password: 'ENTER_STRING_VALUE_HERE'  # Your SAP S-user password (String).
+
+# Directory with SAP installation media (e.g. /software) (String)
+sap_install_media_detect_source_directory: "ENTER_STRING_VALUE_HERE"
+
+
+#### Preconfigure OS for SAP Software ####
+sap_general_preconfigure_modify_etc_hosts: false  # Whether to modify /etc/hosts file (Boolean).
+sap_general_preconfigure_reboot_ok: true  # Whether it's okay to reboot the system (Boolean).
+sap_general_preconfigure_fail_if_reboot_required: false  # Whether to fail if a reboot is required (Boolean).
+sap_netweaver_preconfigure_fail_if_not_enough_swap_space_configured: false  # Whether to fail if not enough swap space is configured (Boolean).
+sap_netweaver_preconfigure_saptune_solution: 'NETWEAVER'  # SUSE saptune solution to apply for SAP NetWeaver (String).
+
+
+#### SAP SWPM Installation ####
+sap_swpm_install_saphostagent: 'true'  # Whether to install SAP Host Agent during SWPM installation (String).
+
+sap_swpm_db_schema_java: "SAPJAVA1"  # Name of the ABAP schema in the SAP AnyDB database (String).
+
+# NOTE: Do not use password with $ for IBM DB2 installations
+sap_swpm_master_password: "NewPass>321"  # Master password for the SAP system (String).
+sap_swpm_ddic_000_password: "NewPass>321"  # Password for the DDIC user in client 000 (String).
+sap_swpm_sapadm_password: "NewPass>321"  # Password for the ABAP Database Connect User 'sap<db_sid>' (String).
+sap_swpm_sap_sidadm_password: "NewPass>321"  # Password for Database Administrator User 'db2<db_sid>' (String).
+
+# Dynamic assignment of SAP SWPM variables
+sap_swpm_sid: "{{ sap_system_sid }}"
+# sap_swpm_ascs_instance_nr: "{{ sap_system_nwas_abap_ascs_instance_nr }}"
+sap_swpm_java_scs_instance_nr: "{{ sap_system_nwas_java_scs_instance_nr }}"
+sap_swpm_pas_instance_nr: "{{ sap_system_nwas_abap_pas_instance_nr }}"
+sap_swpm_db_host: "{{ hostvars[inventory_hostname].groups.nwas_pas[0] }}"
+sap_swpm_db_sid: "{{ sap_system_anydb_sid }}"
+sap_swpm_templates_install_dictionary: "{{ sap_software_install_dictionary }}"
+sap_swpm_fqdn: "{{ ansible_domain }}"
+
+# SAP NetWeaver JAVA Parameters
+sap_swpm_java_scs_instance_hostname: "{{ sap_hostname | d(ansible_hostname) }}"
+sap_swpm_ume_instance_nr: "{{ sap_swpm_pas_instance_nr }}"
+sap_swpm_ume_j2ee_admin_password: "{{ sap_swpm_master_password }}"
+sap_swpm_ume_sapjsf_password: "{{ sap_swpm_master_password }}"
+sap_swpm_ume_type: db # db, abap
+
+#### SAP SWPM Installation - Optional variables ####
+## Unix User ID
+sap_swpm_sapadm_uid: '3000'  # Unix User ID for the sapadm user (String).
+sap_swpm_sapsys_gid: '3001'  # Unix Group ID for the sapsys group (String).
+sap_swpm_sidadm_uid: '3001'  # Unix User ID for the <sid>adm user (String).
+
+sap_swpm_update_etchosts: 'false'  # Whether to update the /etc/hosts file during SWPM installation (String).
+
+
+#### Shared Ansible Facts ####
+sap_hostname: "{{ ansible_hostname }}"
+sap_domain: "{{ ansible_domain }}"
+sap_ip: "{{ ansible_default_ipv4.address }}"
+
+
+#### Ansible dictionary for SAP Installation Media ####
+sap_software_install_dictionary:
+
+  # SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation > Application Server Java > Standard System > Standard System
+  sap_nwas_750_sp22_java_ibmdb2_sandbox_ads:
+
+    # SWPM product catalog ID for the installation (String).
+    sap_swpm_product_catalog_id: NW_Java_OneHost:NW750.DB6.PD
+
+    # List of INI file sections to generate using sap_install.sap_swpm role (List).
+    sap_swpm_inifile_sections_list:
+      - swpm_installation_media
+      - swpm_installation_media_swpm1_exportfiles
+      - swpm_installation_media_swpm1_ibmdb2
+      - credentials
+      - credentials_anydb_ibmdb2
+      - db_config_anydb_ibmdb2
+      - nw_config_anydb
+      - nw_config_other
+      # - nw_config_central_services_abap
+      - nw_config_central_services_java
+      - nw_config_primary_application_server_instance
+      - nw_config_java_ume
+      - nw_config_ports
+      - nw_config_host_agent
+      - sap_os_linux_user
+      - nw_config_java_feature_template_ids
+
+    sap_swpm_java_template_id_selected_list:
+      - java_adobe_document_services
+
+    softwarecenter_search_list_x86_64:
+      - 'SAPCAR_1300-70007716.EXE'
+      - 'SWPM10SP43_2-20009701.SAR'
+      - 'igsexe_13-80003187.sar' # IGS 7.53
+      - 'igshelper_17-10010245.sar'
+      - 'SAPHOSTAGENT61_61-80004822.SAR' # SAP Host Agent 7.22
+      - 'SAPJVM8_90-80000202.SAR' # SAP JVM 8.1
+      - '51055106' # SAP Netweaver 7.5 SP22 Java, ZIP. Contains JAVA_EXPORT (SAP:JEXPORT:750:SP22:*:*), JAVA_EXPORT_JDMP (SAP:JDMP:750:SP22:*:SW-LABEL), JAVA_J2EE_OSINDEP (SAP:J2EE-CD:750:J2EE-CD:j2ee-cd:*), JAVA_J2EE_OSINDEP_J2EE_INST (SAP:J2EE-INST:750:SP22:*:*), JAVA_J2EE_OSINDEP_UT (SAP:UT:750:SP22:*:*)
+      - '51056772' # IBM DB2 FOR LUW 11.5 MP8 FP0 SAP2 LINUX x86_64, ZIP. See SAP Note 101809 - DB6: Supported Db2 Versions and Fix Pack Levels
+      - '73554900102000002424' # IBM DB2 LUW 11.5 SAP OEM license (Note 816773), ZIP
+      - '51056774' # IBM DB2 FOR LUW 11.5 MP8 FP0 SAP2 Client, ZIP
+      - 'SAPEXE_1000-80002573.SAR' # Kernel Part I (753)
+      - 'SAPEXEDB_1000-80002603.SAR' # Kernel Part II (753), IBM DB2
+
+    softwarecenter_search_list_ppc64le:
+      - 'SAPCAR_1300-70007726.EXE'
