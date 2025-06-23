@@ -158,11 +158,14 @@ jobs:
           echo "List of ansible_requirements.yml files after copy:"
           ls -la repo_playbooks_stage/deploy_scenarios/*/ansible_requirements.yml repo_playbooks_stage/special_actions/*/ansible_requirements.yml
 
-          diff repo_playbooks_stage/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml repo_playbooks_main/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml
-
           rsync --human-readable --itemize-changes --archive --delete --exclude '.git' repo_playbooks_stage/ repo_playbooks_main/ > rsync.log
           echo "--- rsync.log content (filtered) ---"
           cat rsync.log | grep -v '^[>.][df]\.\.t\.\.\.\.\.\.' || true
+
+      - name: Show unfiltered rsync output
+        run: |
+          echo "--- rsync.log content (unfiltered) ---"
+          cat rsync.log
 
       - name: Check for changes
         working-directory: repo_playbooks_main
