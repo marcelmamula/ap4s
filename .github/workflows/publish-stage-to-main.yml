@@ -61,9 +61,6 @@ jobs:
           # Update path in interactive tasks
           sed -i 's/..\/..\/common_fragments\/tasks\//optional\//' ./common_fragments/tasks/interactive/*.yml ./common_fragments/tasks/interactive/*/*.yml
 
-          echo "List of ansible_requirements.yml files before copy:"
-          ls -la ./deploy_scenarios/*/ansible_requirements.yml ./special_actions/*/ansible_requirements.yml
-
           # Loop through all deploy_scenarios and supported special_actions
           for dir in ./deploy_scenarios/* ./special_actions/*; do
             if [ -d "$dir" ]; then
@@ -94,9 +91,6 @@ jobs:
               fi  # ansible_requirements not exists
             fi  # dir is directory
           done
-
-          echo "List of ansible_requirements.yml files after copy:"
-          ls -la ./deploy_scenarios/*/ansible_requirements.yml ./special_actions/*/ansible_requirements.yml
 
           shopt -u nullglob
 
@@ -155,34 +149,13 @@ jobs:
 
       - name: Synchronize main with transformed stage
         run: |
-          echo "List of ansible_requirements.yml files after copy:"
-          ls -la repo_playbooks_stage/deploy_scenarios/*/ansible_requirements.yml repo_playbooks_stage/special_actions/*/ansible_requirements.yml
-
-          rsync --human-readable --itemize-changes --archive --delete --exclude '.git' repo_playbooks_stage/ repo_playbooks_main/ > rsync.log
+          rsync --human-readable --itemize-changes --archive --delete --checksum --exclude '.git' repo_playbooks_stage/ repo_playbooks_main/ > rsync.log
           echo "--- rsync.log content (filtered) ---"
           cat rsync.log | grep -v '^[>.][df]\.\.t\.\.\.\.\.\.' || true
 
       - name: Show unfiltered rsync output
         run: |
           echo "--- rsync.log content (unfiltered) ---"
-          cat rsync.log
-
-      - name: Debug ls diff
-        run: |
-          echo "ls -la"
-          ls -la repo_playbooks_stage/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml
-          ls -la repo_playbooks_main/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml
-          echo "diff"
-          diff repo_playbooks_stage/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml repo_playbooks_main/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml
-
-      - name: Debug rsync original
-        run: |
-          rsync --human-readable --itemize-changes --archive --delete --exclude '.git' repo_playbooks_stage/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml repo_playbooks_main/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml > rsync.log
-          cat rsync.log
-
-      - name: Debug rsync checksum
-        run: |
-          rsync --human-readable --itemize-changes --archive --delete --checksum --exclude '.git' repo_playbooks_stage/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml repo_playbooks_main/deploy_scenarios/sap_bw4hana_sandbox/ansible_requirements.yml > rsync.log
           cat rsync.log
 
       - name: Check for changes
