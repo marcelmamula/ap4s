@@ -1,0 +1,223 @@
+---
+#### Infrastructure Provisioning selection ####
+# Type of infrastructure provisioning method to use (String).
+# Options: ansible, ansible_to_terraform, existing_hosts
+sap_vm_provision_iac_type: "ENTER_STRING_VALUE_HERE"
+
+# Infrastructure platform for provisioning (String).
+# Options: aws_ec2_vs, gcp_ce_vm, ibmcloud_vs, ibmcloud_powervs, msazure_vm, ibmpowervm_vm, kubevirt_vm, ovirt_vm, vmware_vm
+sap_vm_provision_iac_platform: "ENTER_STRING_VALUE_HERE"
+
+# Name of the host specification plan to use (String).
+# Options: Defined in host_specifications_dictionary.
+sap_vm_provision_host_specification_plan: "ENTER_STRING_VALUE_HERE"
+
+
+#### Key SAP System variables ####
+sap_system_sid: "S01"  # SAP System ID (SID) (String)
+sap_system_nwas_abap_ascs_instance_nr: "00"  # SAP NetWeaver ABAP ASCS instance number (String).
+sap_system_nwas_abap_pas_instance_nr: "01"  # SAP NetWeaver ABAP PAS instance number (String).
+sap_system_wd_instance_nr: "60"  # SAP Web Dispatcher instance number (String).
+sap_system_nwas_abap_ascs_hostname: "ENTER_STRING_VALUE_HERE"
+sap_system_nwas_abap_pas_hostname: "ENTER_STRING_VALUE_HERE"
+
+## SAP Product selection ##
+# Name of the SAP product to install (String).
+# Options: Defined in sap_software_install_dictionary (e.g. sap_s4hana_2023_sandbox).
+sap_software_product: "ENTER_STRING_VALUE_HERE"
+
+
+#### SAP Software installation media downloads ####
+## Required for download using community.sap_launchpad
+# SAP ONE Support Launchpad credentials
+sap_id_user: "ENTER_STRING_VALUE_HERE"  # Your SAP S-user ID (String).
+sap_id_user_password: 'ENTER_STRING_VALUE_HERE'  # Your SAP S-user password (String).
+
+# Directory with SAP installation media (e.g. /software) (String)
+sap_install_media_detect_source_directory: "ENTER_STRING_VALUE_HERE"
+
+
+#### Preconfigure OS for SAP Software ####
+sap_general_preconfigure_modify_etc_hosts: false  # Whether to modify /etc/hosts file (Boolean).
+sap_general_preconfigure_reboot_ok: true  # Whether it's okay to reboot the system (Boolean).
+sap_general_preconfigure_fail_if_reboot_required: false  # Whether to fail if a reboot is required (Boolean).
+sap_netweaver_preconfigure_fail_if_not_enough_swap_space_configured: false  # Whether to fail if not enough swap space is configured (Boolean).
+sap_netweaver_preconfigure_saptune_solution: 'NETWEAVER'  # SUSE saptune solution to apply for SAP NetWeaver (String).
+
+
+#### SAP SWPM Installation ####
+sap_swpm_master_password: "NewPass$321"  # Master password for the SAP system (String).
+sap_swpm_ddic_000_password: "NewPass$321"  # Password for the DDIC user in client 000 (String).
+
+# Dynamic assignment of SAP SWPM variables
+sap_swpm_sid: "{{ sap_system_sid }}"
+sap_swpm_ascs_instance_nr: "{{ sap_system_nwas_abap_ascs_instance_nr }}"
+sap_swpm_pas_instance_nr: "{{ sap_system_nwas_abap_pas_instance_nr }}"
+sap_swpm_ascs_instance_hostname: "{{ sap_system_nwas_abap_ascs_hostname }}"
+sap_swpm_pas_instance_hostname: "{{ sap_system_nwas_abap_pas_hostname }}"
+sap_swpm_templates_install_dictionary: "{{ sap_software_install_dictionary }}"
+sap_swpm_fqdn: "{{ ansible_domain }}"
+
+# WebDisp Configuration
+sap_swpm_wd_virtual_host: "{{ ansible_hostname }}"
+sap_swpm_wd_instance_nr: "{{ sap_system_wd_instance_nr }}"
+
+sap_swpm_wd_system_connectivity: 'true'
+sap_swpm_wd_backend_sid: "{{ sap_system_sid }}"
+sap_swpm_wd_backend_ms_host: "{{ sap_swpm_ascs_instance_hostname }}"
+sap_swpm_wd_backend_ms_http_port: '80{{ sap_swpm_ascs_instance_nr }}'
+sap_swpm_wd_backend_scenario_size: '500'
+
+sap_swpm_wd_activate_icf: 'true'
+sap_swpm_wd_backend_rfc_host: "{{ sap_swpm_pas_instance_hostname }}"
+sap_swpm_wd_backend_rfc_instance_nr: "{{ sap_swpm_pas_instance_nr }}"
+sap_swpm_wd_backend_rfc_client_nr: "000" # 000 default
+sap_swpm_wd_backend_rfc_user: "DDIC" # DDIC default
+sap_swpm_wd_backend_rfc_user_password: "NewPass$321"
+sap_swpm_ume_j2ee_admin_password: "NewPass$321" # use ICM Auth Web Admin password
+
+#### SAP SWPM Installation - Optional variables ####
+## Unix User ID
+sap_swpm_sapadm_uid: '3000'  # Unix User ID for the sapadm user (String).
+sap_swpm_sapsys_gid: '3001'  # Unix Group ID for the sapsys group (String).
+sap_swpm_sidadm_uid: '3001'  # Unix User ID for the <sid>adm user (String).
+
+sap_swpm_update_etchosts: 'false'  # Whether to update the /etc/hosts file during SWPM installation (String).
+
+
+# SAP Web Dispatcher version to download
+sap_playbook_webdispatcher_version: "ENTER_STRING_VALUE_HERE" # sap_webdispatcher_7_93
+
+# Configuration for SAP installation media detection
+# sap_install_media_detect_** variables are set for each Ansible Task to the respective host
+
+# SAP Note 908097 - SAP Web Dispatcher: Release, Installation, Patches, Documentation
+# Maintenance Software Component Category - https://me.sap.com/softwarecenter/template/products/ENR=01200314690100001804&EVENT=TREE&NE=NAVIGATE&V=MAINT
+# Maintenance Software Component (Archive View) Category - https://me.sap.com/softwarecenter/template/products/ENR=01200314690100001804&EVENT=TREE&NE=NAVIGATE&V=MAINT&TA=ARCHIVE
+softwarecenter_search_list_x86_64:
+
+  sap_webdispatcher_7_20ext:
+    - 'sapwebdisp_718-20008610.sar'  # SAP Web Dispatcher 7.20 EXT Linux
+
+  sap_webdispatcher_7_21ext:
+    - 'SAPWEBDISP_SP_1319-20009463.SAR'  # SAP Web Dispatcher 7.21 EXT Linux
+
+  sap_webdispatcher_7_22ext:
+    - 'SAPWEBDISP_SP_1315-70006466.SAR'  # SAP Web Dispatcher 7.22 EXT Linux. Released for NW AS ABAP 7.0
+
+  sap_webdispatcher_7_40:
+    - 'SAPWEBDISP_SP_77-10012399.SAR'  # SAP Web Dispatcher 7.40 Linux
+
+  sap_webdispatcher_7_41:
+    - 'SAPWEBDISP_SP_227-20012445.SAR'  # SAP Web Dispatcher 7.41 Linux
+
+  # sap_webdispatcher_7_42:
+  #   - 'SAPWEBDISP_SP_446-80000041.SAR'  # SAP Web Dispatcher 7.42 Linux (out of maintenance). Released for NW AS ABAP 7.4x
+
+  # sap_webdispatcher_7_45:
+  #   - 'SAPWEBDISP_SP_900-80000900.SAR'  # SAP Web Dispatcher 7.45 Linux (out of maintenance). Released for NW AS ABAP 7.50
+
+  # sap_webdispatcher_7_49:
+  #   - 'SAPWEBDISP_SP_1129-80001734.SAR'  # SAP Web Dispatcher 7.49 Linux (out of maintenance). Released foror NW AS ABAP 7.51
+
+  sap_webdispatcher_7_53:
+    - 'SAPWEBDISP_SP_1236-80002353.SAR'  # SAP Web Dispatcher 7.53 Linux, original release 06-2017. Released for NW AS ABAP 7.52
+
+  sap_webdispatcher_7_54:
+    - 'SAPWEBDISP_SP_235-80007304.SAR'  # SAP Web Dispatcher 7.54 Linux. Released for NW AS ABAP 7.52
+
+  # sap_webdispatcher_7_73:
+  #   - 'SAPWEBDISP_SP_334-80003389.SAR'  # SAP Web Dispatcher 7.73 Linux (out of maintenance). Released for SAP S/4HANA 1809
+
+  sap_webdispatcher_7_77:
+    - 'SAPCAR_1115-70006178.EXE'
+    - 'SAPEXE_1000-80002573.SAR' # Kernel Part I (753 Patch 1000)
+    - 'SAPEXEDB_1000-80002572.SAR' # Kernel Part II (753 Patch 1000), SAP HANA 2.0
+    - 'SWPM20SP20_1-80003424.SAR'
+    - 'SAPHOSTAGENT56_56-80004822.SAR' # SAP Host Agent 7.22
+    - 'igsexe_13-80003187.sar' # IGS 7.53
+    - 'igshelper_17-10010245.sar'
+    - 'SAPWEBDISP_SP_630-80004425.SAR'  # SAP Web Dispatcher 7.77 Linux, original release 05-2019. Released for SAP S/4HANA 1909
+
+  # sap_webdispatcher_7_81:
+  #   - 'SAPWEBDISP_SP_313-70005393.SAR'  # SAP Web Dispatcher 7.81 Linux (out of maintenance). Released for SAP S/4HANA 2020
+
+  sap_webdispatcher_7_85:
+    - 'SAPCAR_1115-70006178.EXE'
+    - 'SAPEXE_1000-80002573.SAR' # Kernel Part I (753 Patch 1000)
+    - 'SAPEXEDB_1000-80002572.SAR' # Kernel Part II (753 Patch 1000), SAP HANA 2.0
+    - 'SWPM20SP20_1-80003424.SAR'
+    - 'SAPHOSTAGENT56_56-80004822.SAR' # SAP Host Agent 7.22
+    - 'igsexe_13-80003187.sar' # IGS 7.53
+    - 'igshelper_17-10010245.sar'
+    - 'SAPWEBDISP_SP_328-80005553.SAR'  # SAP Web Dispatcher 7.85 Linux, original release 06-2021. Released for SAP S/4HANA 2021
+
+  sap_webdispatcher_7_89:
+    - 'SAPCAR_1115-70006178.EXE'
+    - 'SAPEXE_1000-80002573.SAR' # Kernel Part I (753 Patch 1000)
+    - 'SAPEXEDB_1000-80002572.SAR' # Kernel Part II (753 Patch 1000), SAP HANA 2.0
+    - 'SWPM20SP20_1-80003424.SAR'
+    - 'SAPHOSTAGENT56_56-80004822.SAR' # SAP Host Agent 7.22
+    - 'igsexe_13-80003187.sar' # IGS 7.53
+    - 'igshelper_17-10010245.sar'
+    - 'SAPWEBDISP_SP_226-70007278.SAR'  # SAP Web Dispatcher 7.89 Linux, original release 06-2022. Released for SAP S/4HANA 2022
+
+  sap_webdispatcher_7_93:
+    - 'SAPCAR_1115-70006178.EXE'
+    - 'SAPEXE_1000-80002573.SAR' # Kernel Part I (753 Patch 1000)
+    - 'SAPEXEDB_1000-80002572.SAR' # Kernel Part II (753 Patch 1000), SAP HANA 2.0
+    - 'SWPM20SP20_1-80003424.SAR'
+    - 'SAPHOSTAGENT56_56-80004822.SAR' # SAP Host Agent 7.22
+    - 'igsexe_13-80003187.sar' # IGS 7.53
+    - 'igshelper_17-10010245.sar'
+    - 'SAPWEBDISP_SP_68-80008274.SAR'  # SAP Web Dispatcher 7.93 Linux, original release 06-2023. Released for SAP S/4HANA 2023
+
+
+#### Shared Ansible Facts ####
+sap_hostname: "{{ ansible_hostname }}"
+sap_domain: "{{ ansible_domain }}"
+sap_ip: "{{ ansible_default_ipv4.address }}"
+
+
+#### Ansible dictionary for SAP Installation Media ####
+sap_software_install_dictionary:
+
+  sap_webdispatcher_standalone:
+
+    # Product ID for New Installation
+    sap_swpm_product_catalog_id: NW_Webdispatcher:NW750.IND.PD
+
+    sap_swpm_inifile_sections_list:
+      - swpm_installation_media
+      - credentials
+      - nw_config_other
+      - nw_config_webdisp_generic
+      - nw_config_host_agent
+      - sap_os_linux_user
+      - nw_config_java_icm_credentials # use ICM Auth Web Admin password
+
+    sap_swpm_inifile_dictionary:
+
+      # SAP Host Agent
+      sap_swpm_install_saphostagent: 'false'
+
+
+  sap_webdispatcher_pre_7_5x_standalone_swpm1:
+
+    # Product ID for New Installation
+    sap_swpm_product_catalog_id: NW_Webdispatcher:GENERIC.IND.PD
+
+    sap_swpm_inifile_sections_list:
+      - swpm_installation_media
+      - swpm_installation_media_swpm1
+      - credentials
+      - nw_config_other
+      - nw_config_webdisp_generic
+      - nw_config_host_agent
+      - sap_os_linux_user
+      - nw_config_java_icm_credentials # use ICM Auth Web Admin password
+
+    sap_swpm_inifile_dictionary:
+
+      # SAP Host Agent
+      sap_swpm_install_saphostagent: 'false'
