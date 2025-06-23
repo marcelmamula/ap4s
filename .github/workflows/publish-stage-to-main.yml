@@ -105,7 +105,7 @@ jobs:
               if [[ -f "$file" ]]; then
                 # Extract platform name using basename of file
                 platform=$(basename "$file" | sed 's/ansible_extravars_\(.*\)_base\.yml/\1/')
-                
+
                 # Define files for appending
                 fragment_vars="common_fragments/vars/platform_vars_${platform}.yml"
                 fragment_images="common_fragments/vars/platform_images_${platform}.yml"
