@@ -44,7 +44,7 @@ jobs:
               if [ -f "$extravars_file" ]; then
                 # Check if the file contains "sap_playbook_internal: true"
                 if grep -q "sap_playbook_internal: true" "$extravars_file"; then
-                  echo "$(dir) scenario removed"
+                  echo "$dir scenario removed"
                   rm -rf "$dir"
                 fi  # string is present
               fi  # extravars file exists
@@ -73,7 +73,7 @@ jobs:
                 # Update path to interactive tasks in playbooks
                 sed -i 's/..\/..\/common_fragments\/tasks\//optional\//' $dir/ansible_playbook.yml
 
-                echo "OK $(dir) interactive tasks were copied"
+                echo "OK $dir interactive tasks were copied"
               fi  # interactive_vars exists
 
               # Copy ansible_requirements if it does not exist
@@ -82,12 +82,12 @@ jobs:
                 cp ./common_fragments/ansible_requirements.yml $dir/
                 # Check again to validate file was copied
                 if [ ! -f "$ansible_requirements" ]; then
-                  echo "OK $(dir) ansible_requirements.yml was copied"
+                  echo "OK $dir ansible_requirements.yml was copied"
                 else
-                  echo "FAIL $(dir) ansible_requirements.yml was not copied"
+                  echo "FAIL $dir ansible_requirements.yml was not copied"
                 fi
               else
-                echo "SKIP $(dir) ansible_requirements.yml is already present"
+                echo "SKIP $dir ansible_requirements.yml is already present"
               fi  # ansible_requirements not exists
             fi  # dir is directory
           done
